@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Corrigé Type - Programmation Avancée des API</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #34495e;
+            --accent-color: #3498db;
+            --success-color: #27ae60;
+            --danger-color: #e74c3c;
+            --light-bg: #ecf0f1;
+            --border-color: #bdc3c7;
+            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            font-family: var(--font-family);
+            line-height: 1.6;
+            color: #333;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        header h1 { margin: 0; font-size: 2.5rem; }
+        header h2 { margin: 10px 0 0 0; font-weight: 300; color: #bdc3c7; }
+
+        .container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 20px;
+        }
+
+        .section {
+            background: white;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border-left: 5px solid var(--accent-color);
+        }
+
+        h3 { color: var(--primary-color); border-bottom: 2px solid var(--light-bg); padding-bottom: 10px; }
+        h4 { color: var(--secondary-color); margin-top: 1.5rem; }
+
+        .correct-answer {
+            background-color: #e8f8f5;
+            padding: 10px 15px;
+            border-left: 4px solid var(--success-color);
+            margin: 10px 0;
+            font-weight: 500;
+        }
+
+        /* Interactive Ladder Simulation Styles */
+        .simulator-box {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .sim-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: transform 0.1s, opacity 0.2s;
+        }
+
+        button:active { transform: scale(0.95); }
+
+        .btn-start { background-color: var(--success-color); color: white; }
+        .btn-stop { background-color: var(--danger-color); color: white; }
+
+        .tanks-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .tank-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 30%;
+        }
+
+        .valve {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #7f8c8d;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 12px;
+            transition: background-color 0.3s, box-shadow 0.3s;
+        }
+
+        .valve.active {
+            background-color: var(--success-color);
+            box-shadow: 0 0 15px var(--success-color);
+        }
+
+        .tank {
+            width: 100%;
+            height: 150px;
+            border: 3px solid #bdc3c7;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            position: relative;
+            background-color: rgba(255,255,255,0.1);
+            overflow: hidden;
+        }
+
+        .water {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background-color: #3498db;
+            height: 0%;
+            transition: height 0.5s linear;
+        }
+
+        .timer-display {
+            margin-top: 10px;
+            font-family: monospace;
+            font-size: 1.1rem;
+            color: #f1c40f;
+        }
+
+        /* GRAFCET Styles */
+        .grafcet-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #fff;
+            padding: 20px;
+            border: 2px dashed #bdc3c7;
+            border-radius: 8px;
+        }
+
+        .step {
+            width: 60px;
+            height: 60px;
+            border: 2px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 20px;
+            margin: 10px 0;
+            position: relative;
+            background: white;
+            transition: background-color 0.3s;
+        }
+        
+        .step.initial { border: 4px double #333; }
+        .step.active { background-color: var(--success-color); color: white; border-color: var(--success-color); }
+
+        .transition {
+            width: 40px;
+            height: 4px;
+            background-color: #333;
+            margin: 15px 0;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .transition:hover { background-color: var(--accent-color); }
+        .transition::after {
+            content: attr(data-cond);
+            position: absolute;
+            left: 50px;
+            top: -10px;
+            font-size: 14px;
+            white-space: nowrap;
+            font-weight: bold;
+            color: var(--accent-color);
+        }
+
+        .vertical-line {
+            width: 2px;
+            height: 30px;
+            background-color: #333;
+        }
+
+        code {
+            background-color: #eee;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            color: #c0392b;
+        }
+
+        pre {
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-family: Consolas, monospace;
+        }
+
+        .explanation {
+            background: #fff3cd;
+            padding: 15px;
+            border-left: 4px solid #ffc107;
+            margin: 15px 0;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Corrigé Type Interactif</h1>
+        <h2>Examen Programmation Avancée des API - Master AII</h2>
+    </header>
+
+    <div class="container">
+        
+        <section class="section" id="cours">
+            <h3>I. Questions de cours (3 pts)</h3>
+            <p><strong>1) Le temps de scrutation de l'API :</strong></p>
+            <div class="correct-answer">
+                Réponse correcte : <strong>a)</strong> Est le temps mis par l'automate entre la lecture des entrées et la mise à jour des sorties. [cite: 75]
+            </div>
+            
+            <p><strong>2) Le "Watchdog timer" est :</strong></p>
+            <div class="correct-answer">
+                Réponse correcte : <strong>b)</strong> Une minuterie de surveillance du temps de chaque cycle. [cite: 79]
+            </div>
+
+            <p><strong>3) Les cartes intelligentes peuvent :</strong></p>
+            <div class="correct-answer">
+                Réponse correcte : <strong>a)</strong> Effectuer des tâches de traitement complètement indépendantes du processeur CPU et la fonction Scan de l'API. [cite: 75]
+            </div>
+
+            <p><strong>4) Quels sont les critères de choix d'un logiciel SCADA ?</strong></p>
+            <div class="correct-answer">
+                Les critères principaux incluent : La compatibilité matérielle et logicielle (connectivité avec divers API), la convivialité de l'IHM, la gestion des alarmes et des événements historiques, l'architecture réseau (Client/Serveur), et la scalabilité du système.
+            </div>
+        </section>
+
+        <section class="section" id="exo1">
+            <h3>II. Exercice N°1 : Navette de transfert (7 pts)</h3>
+            <p><strong>Contexte :</strong> Deux lignes de fabrication indépendantes (T1, T2) alimentent une navette (Tn). L'évacuation se fait en bout de ligne. Le système doit gérer les arrivées simultanées en FIFO (First-In, First-Out).</p>
+            
+            <div class="explanation">
+                <strong>Note du Professeur :</strong> Pour respecter la règle FIFO exigée par l'énoncé, la modélisation nécessite de séparer la détection de la gestion de la navette. Nous utilisons des bits mémoires (AP1, AP2) pour enregistrer la demande, puis le GRAFCET principal traite la priorité.
+            </div>
+
+            <h4>1. Le GRAFCET de fonctionnement</h4>
+            <p>Pour la clarté de la correction, nous présentons le GRAFCET principal de la navette. Il suppose que les actions internes <code>AP1</code> et <code>AP2</code> mémorisent l'arrivée.</p>
+            
+            <pre>
+GRAFCET PRINCIPAL (Gestion Navette)
+====================================
+ 0  [ Attente à l'évacuation (pe) ]
+ |
+ +---[ Transition : AP1 . /AP2 ]---------------------------> Vers Ligne 1
+ |
+ +---[ Transition : AP2 . /AP1 ]---------------------------> Vers Ligne 2
+ |
+ +---[ Transition : AP1 . AP2 . Priorite_L1 ]--------------> Vers Ligne 1 (FIFO)
+ |
+ +---[ Transition : AP1 . AP2 . /Priorite_L1 ]-------------> Vers Ligne 2 (FIFO)
+            </pre>
+
+            <h4>2. Traduction en langage LADDER (Extrait)</h4>
+            <p>On applique les équations d'activation / désactivation[cite: 161]: <code>X = (Activation + Mémoire) . /Désactivation</code>.</p>
+            <pre>
+// Gestion Mémoire AP1 (Ligne 1)
+|---[ a1 ]-------[ /X_Navette_L1 ]-------------( S ) AP1 ---|
+|---[ X_Navette_L1_Chargee ]-------------------( R ) AP1 ---|
+
+// Mouvement Navette Gauche (G)
+|---[ X_Aller_L1 ]---[ /p1 ]-------------------( G )--------|
+|---[ X_Aller_L2 ]---[ /p2 ]-------------------( G )--------|
+
+// Rotation des Tapis pour chargement (T1 et Tn)
+|---[ p1 ]---[ AP1 ]---[ /an ]-----------------( T1 )-------|
+|---[ p1 ]---[ AP1 ]---[ /an ]-----------------( Tn )-------|
+            </pre>
+        </section>
+
+        <section class="section" id="exo2">
+            <h3>III. Exercice N°2 : Réacteur à cuves en cascade (6 pts)</h3>
+            <p><strong>Cahier des charges :</strong> Transferts séquentiels entre 3 réservoirs avec temporisations spécifiques (7h, 8h, 5h).</p>
+            
+            <h4>1. Table des Entrées / Sorties</h4>
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                <tr style="background-color: var(--primary-color); color: white;">
+                    <th style="padding: 10px; border: 1px solid #ddd;">Entrées (Inputs)</th>
+                    <th style="padding: 10px; border: 1px solid #ddd;">Sorties (Outputs)</th>
+                    <th style="padding: 10px; border: 1px solid #ddd;">Variables Internes</th>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd;">START (Marche)<br>STOP (Arrêt Sécurité)</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">V1 (Electrovanne 1)<br>V2 (Electrovanne 2)<br>V3 (Electrovanne Purge 3)</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">M_RUN (Mémoire Cycle)<br>TON_1 (Tempo 7h)<br>TON_2 (Tempo 8h)<br>TON_3 (Tempo 5h)</td>
+                </tr>
+            </table>
+
+            <h4>2. Code LADDER et Simulation Interactive</h4>
+            <div class="explanation">
+                <strong>Outil Pédagogique :</strong> Cliquez sur <strong>START</strong> pour visualiser le déclenchement en cascade des temporisateurs (TON) et l'ouverture séquentielle des vannes. (Échelle de temps accélérée : 1 heure = 1 seconde).
+            </div>
+
+            <div class="simulator-box">
+                <div class="sim-controls">
+                    <button class="btn-start" onclick="startSim2()">▶ START CYCLE</button>
+                    <button class="btn-stop" onclick="stopSim2()">⏹ STOP (ARRET URGENCE)</button>
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <strong>État du système : </strong> <span id="sys-status" style="color: var(--danger-color); font-weight: bold;">ARRÊTÉ</span>
+                </div>
+
+                <div class="tanks-container">
+                    <div class="tank-wrapper">
+                        <div class="valve" id="v1">V1</div>
+                        <div class="tank"><div class="water" id="w1" style="height: 100%;"></div></div>
+                        <div class="timer-display">T1 : <span id="t1-val">0.0</span> / 7.0 h</div>
+                    </div>
+                    <div class="tank-wrapper">
+                        <div class="valve" id="v2">V2</div>
+                        <div class="tank"><div class="water" id="w2"></div></div>
+                        <div class="timer-display">T2 : <span id="t2-val">0.0</span> / 8.0 h</div>
+                    </div>
+                    <div class="tank-wrapper">
+                        <div class="valve" id="v3">V3</div>
+                        <div class="tank"><div class="water" id="w3"></div></div>
+                        <div class="timer-display">T3 : <span id="t3-val">0.0</span> / 5.0 h</div>
+                    </div>
+                </div>
+            </div>
+
+            <h4 style="margin-top:20px;">Traduction Ladder (Norme CEI 61131-3)</h4>
+            <pre>
+// Auto-maintien du cycle
+|---[ START ]----+----[ /STOP ]----------------( S ) M_RUN ---|
+|---[ M_RUN ]----|
+
+// Phase 1 : Transfert R1 vers R2 (7h)
+|---[ M_RUN ]----[ /T1.DN ]--------------------(   ) V1 ------|
+|---[ M_RUN ]----------------------------------[ TON T1 7h ]--|
+
+// Phase 2 : Transfert R2 vers R3 (8h)
+|---[ M_RUN ]----[ T1.DN ]----[ /T2.DN ]-------(   ) V2 ------|
+|---[ M_RUN ]----[ T1.DN ]---------------------[ TON T2 8h ]--|
+
+// Phase 3 : Purge R3 (5h)
+|---[ M_RUN ]----[ T2.DN ]----[ /T3.DN ]-------(   ) V3 ------|
+|---[ M_RUN ]----[ T2.DN ]---------------------[ TON T3 5h ]--|
+
+// Fin de cycle
+|---[ T3.DN ]----------------------------------( R ) M_RUN ---|
+            </pre>
+        </section>
+
+        <section class="section" id="exo3">
+            <h3>IV. Exercice N°3 : Divergence GRAFCET et IL (4 pts)</h3>
+            <p><strong>Cahier des charges :</strong> Mise en équation d'un GRAFCET comportant une divergence en OU (Choix de séquence).</p>
+
+            <div class="explanation">
+                <strong>Analyse :</strong> Le GRAFCET montre une divergence depuis l'étape 0. Les conditions <code>m.h</code> et <code>n.d</code> déterminent la branche à emprunter. Testez la simulation de la branche de gauche en cliquant sur la transition !
+            </div>
+
+            <div style="display: flex; justify-content: space-around; align-items: center; background: #ecf0f1; padding: 20px; border-radius: 8px;">
+                <div class="grafcet-container">
+                    <div class="step initial active" id="g-step0">0</div>
+                    <div class="vertical-line"></div>
+                    <div class="transition" data-cond="m.h" onclick="triggerTransition('m.h')"></div>
+                    <div class="vertical-line"></div>
+                    <div class="step" id="g-step1">1</div>
+                    <span style="font-size: 12px; color: #7f8c8d;">Action: A+</span>
+                    <div class="vertical-line"></div>
+                    <div class="transition" data-cond="a1" onclick="triggerTransition('a1')"></div>
+                    <div class="vertical-line"></div>
+                    <div class="step" id="g-step2">2</div>
+                    <span style="font-size: 12px; color: #7f8c8d;">Action: A-</span>
+                    <div style="margin-top: 15px;">
+                        <button onclick="resetGrafcet()" style="font-size: 12px; padding: 5px;">Réinitialiser</button>
+                    </div>
+                </div>
+
+                <div style="flex: 1; margin-left: 30px;">
+                    <h4>1. Équations d'activation et de désactivation [cite: 161]</h4>
+                    <p>En appliquant le principe général <code>Xn = (Activation + Mémoire) . /Désactivation</code> :</p>
+                    <ul>
+                        <li><strong>Étape 1 :</strong> 
+                            <br>Activation = <code>X0 . m . h</code>
+                            <br>Désactivation = <code>X2</code>
+                            <br>Équation = <code>X1 = (X0 . m . h + X1) . /X2</code>
+                        </li>
+                        <li><strong>Étape 3 (Branche de droite) :</strong>
+                            <br>Activation = <code>X0 . n . d</code>
+                            <br>Désactivation = <code>X4</code>
+                            <br>Équation = <code>X3 = (X0 . n . d + X3) . /X4</code>
+                        </li>
+                    </ul>
+
+                    <h4>2. Langage Liste d'Instructions (IL / STL) [cite: 212]</h4>
+                    <p>Pour l'étape 1 (Exemple au format Siemens / IEC 61131-3) :</p>
+                    <pre>
+LD   X0
+A    m
+A    h
+O    X1
+AN   X2
+=    X1
+                    </pre>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <script>
+        // --- SIMULATEUR EXERCICE 2 (LADDER / CUVES) ---
+        let sim2 = {
+            m_run: false,
+            t1: 0, t2: 0, t3: 0,
+            interval: null
+        };
+
+        function updateUI() {
+            // Update Status
+            const statusEl = document.getElementById('sys-status');
+            statusEl.innerText = sim2.m_run ? "CYCLE EN COURS" : "ARRÊTÉ";
+            statusEl.style.color = sim2.m_run ? "var(--success-color)" : "var(--danger-color)";
+
+            // Check Timers Done Bits
+            let t1_dn = sim2.t1 >= 7.0;
+            let t2_dn = sim2.t2 >= 8.0;
+            let t3_dn = sim2.t3 >= 5.0;
+
+            // Logic for Valves
+            let v1_active = sim2.m_run && !t1_dn;
+            let v2_active = sim2.m_run && t1_dn && !t2_dn;
+            let v3_active = sim2.m_run && t2_dn && !t3_dn;
+
+            document.getElementById('v1').className = "valve " + (v1_active ? "active" : "");
+            document.getElementById('v2').className = "valve " + (v2_active ? "active" : "");
+            document.getElementById('v3').className = "valve " + (v3_active ? "active" : "");
+
+            // Increment Timers
+            if (v1_active) sim2.t1 += 0.1;
+            if (v2_active) sim2.t2 += 0.1;
+            if (v3_active) sim2.t3 += 0.1;
+
+            // End of Cycle Reset
+            if (sim2.m_run && t3_dn) {
+                stopSim2();
+            }
+
+            // Visual Water Levels and texts
+            document.getElementById('t1-val').innerText = Math.min(sim2.t1, 7.0).toFixed(1);
+            document.getElementById('t2-val').innerText = Math.min(sim2.t2, 8.0).toFixed(1);
+            document.getElementById('t3-val').innerText = Math.min(sim2.t3, 5.0).toFixed(1);
+
+            document.getElementById('w1').style.height = v1_active ? Math.max(0, 100 - (sim2.t1/7)*100) + "%" : (t1_dn ? "0%" : "100%");
+            document.getElementById('w2').style.height = v2_active ? Math.min(100, (sim2.t2/8)*100) + "%" : (t2_dn ? "0%" : "0%");
+            document.getElementById('w3').style.height = v3_active ? Math.max(0, 100 - (sim2.t3/5)*100) + "%" : (t3_dn ? "0%" : "0%");
+        }
+
+        function startSim2() {
+            if (!sim2.m_run) {
+                sim2.m_run = true;
+                sim2.t1 = 0; sim2.t2 = 0; sim2.t3 = 0;
+                document.getElementById('w1').style.height = "100%";
+                clearInterval(sim2.interval);
+                sim2.interval = setInterval(updateUI, 100);
+            }
+        }
+
+        function stopSim2() {
+            sim2.m_run = false;
+            clearInterval(sim2.interval);
+            updateUI();
+        }
+
+        // --- SIMULATEUR EXERCICE 3 (GRAFCET) ---
+        let activeStep = 0;
+
+        function triggerTransition(cond) {
+            let s0 = document.getElementById('g-step0');
+            let s1 = document.getElementById('g-step1');
+            let s2 = document.getElementById('g-step2');
+
+            if (cond === 'm.h' && activeStep === 0) {
+                activeStep = 1;
+                s0.classList.remove('active');
+                s1.classList.add('active');
+            } else if (cond === 'a1' && activeStep === 1) {
+                activeStep = 2;
+                s1.classList.remove('active');
+                s2.classList.add('active');
+            }
+        }
+
+        function resetGrafcet() {
+            activeStep = 0;
+            document.getElementById('g-step0').classList.add('active');
+            document.getElementById('g-step1').classList.remove('active');
+            document.getElementById('g-step2').classList.remove('active');
+        }
+    </script>
+</body>
+</html>
